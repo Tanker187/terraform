@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
@@ -69,7 +70,24 @@ func (h *testHTTPHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		}
 	default:
 		path := filepath.Clean(r.URL.Path)
-		fileToSend, err := os.Open(fmt.Sprintf("testdata/%s", path))
+		const baseDir = "testdata"
+
+		absBaseDir, err := filepath.Abs(baseDir)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("404 Not Found"))
+			return
+		}
+
+		requestedPath := filepath.Join(baseDir, path)
+		absRequestedPath, err := filepath.Abs(requestedPath)
+		if err != nil || !strings.HasPrefix(absRequestedPath, absBaseDir+string(os.PathSeparator)) {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("404 Not Found"))
+			return
+		}
+
+		fileToSend, err := os.Open(absRequestedPath)
 		if err == nil {
 			io.Copy(w, fileToSend)
 			return
