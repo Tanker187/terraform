@@ -58,6 +58,11 @@ jobs:
 
             - name: "Check for changelog entry"
               uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+              env:
+                  CHANGES: ${{ steps.changelog.outputs.changes }}
+                  CHANGED_CHANGES_FILES: ${{ steps.changelog.outputs.changes_files }}
+                  CHANGELOG_CHANGES: ${{ steps.changelog.outputs.changelog }}
+                  VERSION_CHANGES: ${{ steps.changelog.outputs.version }}
               with:
                   script: |
                       const fs = require("fs");
@@ -108,10 +113,10 @@ jobs:
                           }
                       }
 
-                      const changesPresent = ${{steps.changelog.outputs.changes}};
-                      const changedChangesFiles = ${{steps.changelog.outputs.changes_files}};
-                      const changelogChangesPresent = ${{steps.changelog.outputs.changelog}};
-                      const versionChangesPresent = ${{steps.changelog.outputs.version}};
+                      const changesPresent = process.env.CHANGES;
+                      const changedChangesFiles = process.env.CHANGED_CHANGES_FILES;
+                      const changelogChangesPresent = process.env.CHANGELOG_CHANGES;
+                      const versionChangesPresent = process.env.VERSION_CHANGES;
 
                       const prLabels = await github.rest.issues.listLabelsOnIssue({
                           issue_number: context.issue.number,
