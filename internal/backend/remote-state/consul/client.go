@@ -657,7 +657,7 @@ func uncompressState(data []byte) ([]byte, error) {
 
 func split(payload []byte, limit int) [][]byte {
 	var chunk []byte
-	chunks := make([][]byte, 0, len(payload)/limit+1)
+	chunks := make([][]byte, 0)
 	for len(payload) >= limit {
 		chunk, payload = payload[:limit], payload[limit:]
 		chunks = append(chunks, chunk)
