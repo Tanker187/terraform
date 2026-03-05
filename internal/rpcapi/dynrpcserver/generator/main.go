@@ -275,7 +275,7 @@ func typeRef(fullType, name, pkg string) string {
 		// Example 2: google.golang.org/grpc.ClientStreamingServer[github.com/hashicorp/terraform/internal/rpcapi/terraform1/stacks.OpenStackPlan_RequestItem, github.com/hashicorp/terraform/internal/rpcapi/terraform1/stacks.OpenStackPlan_Response]
 
 		// Pull grpc.Foobar out of fullType string
-		grpcGenericRe := regexp.MustCompile(`^google\.golang\.org\/(?P<GrpcType>grpc\.\w+)\[github.com`)
+		grpcGenericRe := regexp.MustCompile(`^google\.golang\.org\/(?P<GrpcType>grpc\.\w+)\[github\.com`)
 		i := grpcGenericRe.SubexpIndex("GrpcType")
 		grpcGeneric := grpcGenericRe.FindStringSubmatch(fullType)[i]
 
