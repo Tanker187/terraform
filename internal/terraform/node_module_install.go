@@ -125,6 +125,12 @@ func (n *nodeInstallModule) Execute(ctx EvalContext, walkOp walkOperation) tfdia
 	currentModuleKey := n.Addr[len(n.Addr)-1].Name
 	n.Parent.Children[currentModuleKey] = config
 
+	// During init, modules are loaded incrementally so the checks state
+	// built at walk start only knows about the root module. Register all
+	// checkable objects from the newly loaded module so that validation
+	// nodes added by DynamicExpand can find their check entries.
+	ctx.Checks().RegisterModule(config)
+
 	n.Config = config
 	n.Version = v
 
@@ -153,6 +159,8 @@ func (n *nodeInstallModule) DynamicExpand(ctx EvalContext) (*Graph, tfdiags.Diag
 
 	return &g, nil
 }
+
+const constVariableDetail = "\n\nOnly literal values and constant variables (with const = true) are allowed for this attribute, as well as values derived from these."
 
 func evalSource(sourceExpr hcl.Expression, hasVersion bool, ctx EvalContext) (addrs.ModuleSource, string, tfdiags.Diagnostics) {
 	var diags tfdiags.Diagnostics
@@ -192,7 +200,7 @@ func evalSource(sourceExpr hcl.Expression, hasVersion bool, ctx EvalContext) (ad
 			diags = diags.Append(&hcl.Diagnostic{
 				Severity: hcl.DiagError,
 				Summary:  "Invalid module source",
-				Detail:   "The module source contains a reference that is unknown during init.",
+				Detail:   "The module source contains a reference that is unknown during init." + constVariableDetail,
 				Subject:  sourceExpr.Range().Ptr(),
 			})
 			return nil, "", diags
@@ -214,7 +222,7 @@ func evalSource(sourceExpr hcl.Expression, hasVersion bool, ctx EvalContext) (ad
 				diags = diags.Append(&hcl.Diagnostic{
 					Severity:    hcl.DiagError,
 					Summary:     "Invalid module source",
-					Detail:      "The value of a reference in the module source is unknown.",
+					Detail:      "The value of a reference in the module source is unknown." + constVariableDetail,
 					Subject:     part.Range().Ptr(),
 					Expression:  part,
 					EvalContext: hclCtx,
@@ -226,7 +234,7 @@ func evalSource(sourceExpr hcl.Expression, hasVersion bool, ctx EvalContext) (ad
 		diags = diags.Append(&hcl.Diagnostic{
 			Severity: hcl.DiagError,
 			Summary:  "Invalid module source",
-			Detail:   "The module source contains a reference that is unknown.",
+			Detail:   "The module source contains a reference that is unknown." + constVariableDetail,
 			Subject:  sourceExpr.Range().Ptr(),
 		})
 		return nil, "", diags
@@ -335,7 +343,7 @@ func evalVersionConstraint(versionExpr hcl.Expression, ctx EvalContext) (configs
 			diags = diags.Append(&hcl.Diagnostic{
 				Severity: hcl.DiagError,
 				Summary:  "Invalid module version",
-				Detail:   "The module version contains a reference that is unknown during init.",
+				Detail:   "The module version contains a reference that is unknown during init." + constVariableDetail,
 				Subject:  versionExpr.Range().Ptr(),
 			})
 			return ret, diags
@@ -357,7 +365,7 @@ func evalVersionConstraint(versionExpr hcl.Expression, ctx EvalContext) (configs
 				diags = diags.Append(&hcl.Diagnostic{
 					Severity:    hcl.DiagError,
 					Summary:     "Invalid module version",
-					Detail:      "The value of a reference in the module version is unknown.",
+					Detail:      "The value of a reference in the module version is unknown." + constVariableDetail,
 					Subject:     part.Range().Ptr(),
 					Expression:  part,
 					EvalContext: hclCtx,
@@ -369,7 +377,7 @@ func evalVersionConstraint(versionExpr hcl.Expression, ctx EvalContext) (configs
 		diags = diags.Append(&hcl.Diagnostic{
 			Severity: hcl.DiagError,
 			Summary:  "Invalid module version",
-			Detail:   "The module version contains a reference that is unknown.",
+			Detail:   "The module version contains a reference that is unknown." + constVariableDetail,
 			Subject:  versionExpr.Range().Ptr(),
 		})
 		return ret, diags
