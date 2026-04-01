@@ -2073,6 +2073,7 @@ func clientCapabilitiesToProto(c providers.ClientCapabilities) *proto6.ClientCap
 		DeferralAllowed:            c.DeferralAllowed,
 		WriteOnlyAttributesAllowed: c.WriteOnlyAttributesAllowed,
 		StorePlannedPrivate:        c.StorePlannedPrivate,
+		ComputedBlocksAllowed:      c.ComputedBlocksAllowed,
 	}
 }
 

@@ -324,12 +324,23 @@ func (n *NodeValidatableResource) validateResource(ctx EvalContext) tfdiags.Diag
 
 	diags = diags.Append(validateDependsOn(ctx, n.Config.DependsOn))
 
+	schema := providerSchema.SchemaForResourceType(n.Config.Mode, n.Config.Type)
+	// we validate the nil conditions below, because we want to try and suggest
+	// the alternate mode to users
+	if schema.Body != nil {
+		// core has never strictly validated schemas internally, so we only
+		// validate known-new schemas, which for now only consist of those with
+		// computed blocks.
+		if schema.Body.ContainsComputedBlocks() {
+			diags = diags.Append(schema.Body.InternalValidate())
+		}
+	}
+
 	// Provider entry point varies depending on resource mode, because
 	// managed resources and data resources are two distinct concepts
 	// in the provider abstraction.
 	switch n.Config.Mode {
 	case addrs.ManagedResourceMode:
-		schema := providerSchema.SchemaForResourceType(n.Config.Mode, n.Config.Type)
 		if schema.Body == nil {
 			var suggestion string
 			if dSchema := providerSchema.SchemaForResourceType(addrs.DataResourceMode, n.Config.Type); dSchema.Body != nil {
@@ -411,7 +422,6 @@ func (n *NodeValidatableResource) validateResource(ctx EvalContext) tfdiags.Diag
 		diags = diags.Append(resp.Diagnostics.InConfigBody(n.Config.Config, n.Addr.String()))
 
 	case addrs.DataResourceMode:
-		schema := providerSchema.SchemaForResourceType(n.Config.Mode, n.Config.Type)
 		if schema.Body == nil {
 			var suggestion string
 			if dSchema := providerSchema.SchemaForResourceType(addrs.ManagedResourceMode, n.Config.Type); dSchema.Body != nil {

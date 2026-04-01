@@ -312,6 +312,13 @@ type ClientCapabilities struct {
 	// returned from PlanResourceChange, and return it with the final
 	// PlanResourceChange call.
 	StorePlannedPrivate bool
+
+	// computed_blocks_allowed indicates that the client can handle optionally
+	// computed nested block values in resources. Because older versions of
+	// Terraform without this capability will ignore the computed flag in the
+	// schema, it is up to the provider to return an appropriate diagnostic when
+	// a resource requiring the computed behavior is used.
+	ComputedBlocksAllowed bool
 }
 
 type ValidateProviderConfigRequest struct {

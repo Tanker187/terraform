@@ -1044,8 +1044,14 @@ type ClientCapabilities struct {
 	// returned with an initial plan, and send it back to the provider as
 	// PlannedPrivate data in a subsequent plan request.
 	StorePlannedPrivate bool `protobuf:"varint,3,opt,name=store_planned_private,json=storePlannedPrivate,proto3" json:"store_planned_private,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	// computed_blocks_allowed indicates that the client can handle optionally
+	// computed nested block values in resources. Because older versions of
+	// Terraform without this capability will ignore the computed flag in the
+	// schema, it is up to the provider to return an appropriate diagnostic when
+	// a resource requiring the computed behavior is used.
+	ComputedBlocksAllowed bool `protobuf:"varint,4,opt,name=computed_blocks_allowed,json=computedBlocksAllowed,proto3" json:"computed_blocks_allowed,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *ClientCapabilities) Reset() {
@@ -1095,6 +1101,13 @@ func (x *ClientCapabilities) GetWriteOnlyAttributesAllowed() bool {
 func (x *ClientCapabilities) GetStorePlannedPrivate() bool {
 	if x != nil {
 		return x.StorePlannedPrivate
+	}
+	return false
+}
+
+func (x *ClientCapabilities) GetComputedBlocksAllowed() bool {
+	if x != nil {
+		return x.ComputedBlocksAllowed
 	}
 	return false
 }
@@ -2878,6 +2891,7 @@ type Schema_Block struct {
 	DescriptionKind    StringKind             `protobuf:"varint,5,opt,name=description_kind,json=descriptionKind,proto3,enum=tfplugin6.StringKind" json:"description_kind,omitempty"`
 	Deprecated         bool                   `protobuf:"varint,6,opt,name=deprecated,proto3" json:"deprecated,omitempty"`
 	DeprecationMessage string                 `protobuf:"bytes,7,opt,name=deprecation_message,json=deprecationMessage,proto3" json:"deprecation_message,omitempty"`
+	Computed           bool                   `protobuf:"varint,8,opt,name=computed,proto3" json:"computed,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -2959,6 +2973,13 @@ func (x *Schema_Block) GetDeprecationMessage() string {
 		return x.DeprecationMessage
 	}
 	return ""
+}
+
+func (x *Schema_Block) GetComputed() bool {
+	if x != nil {
+		return x.Computed
+	}
+	return false
 }
 
 type Schema_Attribute struct {
@@ -8153,10 +8174,10 @@ const file_tfplugin6_proto_rawDesc = "" +
 	"\x14ResourceIdentityData\x12<\n" +
 	"\ridentity_data\x18\x01 \x01(\v2\x17.tfplugin6.DynamicValueR\fidentityData\"9\n" +
 	"\fActionSchema\x12)\n" +
-	"\x06schema\x18\x01 \x01(\v2\x11.tfplugin6.SchemaR\x06schema\"\x96\v\n" +
+	"\x06schema\x18\x01 \x01(\v2\x11.tfplugin6.SchemaR\x06schema\"\xb2\v\n" +
 	"\x06Schema\x12\x18\n" +
 	"\aversion\x18\x01 \x01(\x03R\aversion\x12-\n" +
-	"\x05block\x18\x02 \x01(\v2\x17.tfplugin6.Schema.BlockR\x05block\x1a\xd3\x02\n" +
+	"\x05block\x18\x02 \x01(\v2\x17.tfplugin6.Schema.BlockR\x05block\x1a\xef\x02\n" +
 	"\x05Block\x12\x18\n" +
 	"\aversion\x18\x01 \x01(\x03R\aversion\x12;\n" +
 	"\n" +
@@ -8169,7 +8190,8 @@ const file_tfplugin6_proto_rawDesc = "" +
 	"\n" +
 	"deprecated\x18\x06 \x01(\bR\n" +
 	"deprecated\x12/\n" +
-	"\x13deprecation_message\x18\a \x01(\tR\x12deprecationMessage\x1a\xb4\x03\n" +
+	"\x13deprecation_message\x18\a \x01(\tR\x12deprecationMessage\x12\x1a\n" +
+	"\bcomputed\x18\b \x01(\bR\bcomputed\x1a\xb4\x03\n" +
 	"\tAttribute\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\fR\x04type\x129\n" +
@@ -8239,11 +8261,12 @@ const file_tfplugin6_proto_rawDesc = "" +
 	"\fplan_destroy\x18\x01 \x01(\bR\vplanDestroy\x12?\n" +
 	"\x1cget_provider_schema_optional\x18\x02 \x01(\bR\x19getProviderSchemaOptional\x12.\n" +
 	"\x13move_resource_state\x18\x03 \x01(\bR\x11moveResourceState\x128\n" +
-	"\x18generate_resource_config\x18\x04 \x01(\bR\x16generateResourceConfig\"\xb6\x01\n" +
+	"\x18generate_resource_config\x18\x04 \x01(\bR\x16generateResourceConfig\"\xee\x01\n" +
 	"\x12ClientCapabilities\x12)\n" +
 	"\x10deferral_allowed\x18\x01 \x01(\bR\x0fdeferralAllowed\x12A\n" +
 	"\x1dwrite_only_attributes_allowed\x18\x02 \x01(\bR\x1awriteOnlyAttributesAllowed\x122\n" +
-	"\x15store_planned_private\x18\x03 \x01(\bR\x13storePlannedPrivate\"\xa2\x01\n" +
+	"\x15store_planned_private\x18\x03 \x01(\bR\x13storePlannedPrivate\x126\n" +
+	"\x17computed_blocks_allowed\x18\x04 \x01(\bR\x15computedBlocksAllowed\"\xa2\x01\n" +
 	"\bDeferred\x122\n" +
 	"\x06reason\x18\x01 \x01(\x0e2\x1a.tfplugin6.Deferred.ReasonR\x06reason\"b\n" +
 	"\x06Reason\x12\v\n" +
